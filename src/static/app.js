@@ -1,8 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   const activitiesList = document.getElementById("activities-list");
-  const activitySelect = document.getElementById("activity");
-  const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  // Modal elements
+  const signupModal = document.getElementById("signup-modal");
+  const modalClose = document.querySelector(".close-modal");
+  const modalForm = document.getElementById("signup-form");
+  const modalEmail = document.getElementById("modal-email");
+  const modalActivity = document.getElementById("modal-activity");
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -45,20 +49,25 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="participants-container">
             ${participantsHTML}
           </div>
+          <button class="register-btn" data-activity="${name}">Register Student</button>
         `;
 
         activitiesList.appendChild(activityCard);
-
-        // Add option to select dropdown
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        activitySelect.appendChild(option);
       });
 
       // Add event listeners to delete buttons
       document.querySelectorAll(".delete-btn").forEach((button) => {
         button.addEventListener("click", handleUnregister);
+      });
+
+      // Add event listeners to register buttons
+      document.querySelectorAll(".register-btn").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          const activity = button.getAttribute("data-activity");
+          modalActivity.value = activity;
+          modalEmail.value = "";
+          signupModal.classList.remove("hidden");
+        });
       });
     } catch (error) {
       activitiesList.innerHTML =
@@ -110,12 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Handle form submission
-  signupForm.addEventListener("submit", async (event) => {
+
+  // Modal form submission for registration
+  modalForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const activity = document.getElementById("activity").value;
+    const email = modalEmail.value;
+    const activity = modalActivity.value;
 
     try {
       const response = await fetch(
@@ -132,8 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (response.ok) {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
-        signupForm.reset();
-
+        modalForm.reset();
+        signupModal.classList.add("hidden");
         // Refresh activities list to show updated participants
         fetchActivities();
       } else {
@@ -152,6 +162,18 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
+    }
+  });
+
+  // Modal close logic
+  modalClose.addEventListener("click", () => {
+    signupModal.classList.add("hidden");
+  });
+
+  // Close modal on outside click
+  window.addEventListener("click", (event) => {
+    if (event.target === signupModal) {
+      signupModal.classList.add("hidden");
     }
   });
 
